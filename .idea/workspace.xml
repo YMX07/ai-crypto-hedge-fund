@@ -5,19 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="413523d6-aa9c-4d30-bc1c-006c5763f60c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/prompts.json" beforeDir="false" afterPath="$PROJECT_DIR$/config/prompts.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/brian_armstrong.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/brian_armstrong.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/charles_hoskinson.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/charles_hoskinson.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/cz_binance.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/cz_binance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/elon_musk.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/elon_musk.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/michael_saylor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/michael_saylor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/risk_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/risk_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/technicals.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/technicals.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/agents/vitalik_buterin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/vitalik_buterin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tools/analysts.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tools/analysts.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +23,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
