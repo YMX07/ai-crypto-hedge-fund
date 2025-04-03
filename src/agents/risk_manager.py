@@ -1,5 +1,7 @@
 from agents.base_agent import BaseAgent
 from tools.utils import calculate_volatility
+from tools.llm_interface import call_llm  # Add this import
+import json
 
 class RiskManagerAgent(BaseAgent):
     def __init__(self):

@@ -1,4 +1,4 @@
-from src.agents.base_agent import BaseAgent
+from agents.base_agent import BaseAgent
 
 class CZBinanceAgent(BaseAgent):
     def __init__(self):

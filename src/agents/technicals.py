@@ -1,5 +1,5 @@
-from src.agents.base_agent import BaseAgent
-from src.tools.llm_interface import call_llm
+from agents.base_agent import BaseAgent
+from tools.llm_interface import call_llm
 import json
 
 class TechnicalsAgent(BaseAgent):

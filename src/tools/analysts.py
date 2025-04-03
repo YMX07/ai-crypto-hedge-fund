@@ -12,13 +12,13 @@ def get_analyst_nodes():
     """
     Returns a dictionary mapping analyst keys to their node names and functions.
     """
-    from src.agents.michael_saylor import MichaelSaylorAgent
-    from src.agents.vitalik_buterin import VitalikButerinAgent
-    from src.agents.technicals import TechnicalsAgent
-    from src.agents.cz_binance import CZBinanceAgent
-    from src.agents.elon_musk import ElonMuskAgent
-    from src.agents.brian_armstrong import BrianArmstrongAgent
-    from src.agents.charles_hoskinson import CharlesHoskinsonAgent
+    from agents.michael_saylor import MichaelSaylorAgent
+    from agents.vitalik_buterin import VitalikButerinAgent
+    from agents.technicals import TechnicalsAgent
+    from agents.cz_binance import CZBinanceAgent
+    from agents.elon_musk import ElonMuskAgent
+    from agents.brian_armstrong import BrianArmstrongAgent
+    from agents.charles_hoskinson import CharlesHoskinsonAgent
 
     return {
         "michael_saylor": ("michael_saylor_agent", MichaelSaylorAgent().generate_signal),
