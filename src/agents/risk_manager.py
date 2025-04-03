@@ -19,6 +19,7 @@ class RiskManagerAgent(BaseAgent):
         tickers = data["tickers"]
         price_data = data.get("price_data", {})
         signals = data.get("analyst_signals", {})
+        model_name = state["metadata"].get("model_name", "gemini-1.5-flash")  # Update to correct model name
 
         for ticker in tickers:
             if ticker not in price_data:
@@ -30,7 +31,7 @@ class RiskManagerAgent(BaseAgent):
             data_summary = f"Asset: {ticker}\nLatest Close: {df['close'].iloc[-1]}\n30-day Volatility: {volatility:.2f}%"
             full_prompt = f"{self.prompt}\n\nCurrent Market Data:\n{data_summary}\n\nProvide a trading signal (buy, sell, hold) with confidence (0-1) and brief reasoning."
 
-            response = call_llm(full_prompt)
+            response = call_llm(full_prompt, model=model_name)  # Pass the model argument
             try:
                 signal = json.loads(response)
                 for analyst, analyst_signals in signals.items():

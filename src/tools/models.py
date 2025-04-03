@@ -70,7 +70,7 @@ AVAILABLE_MODELS = [
     ),
     LLMModel(
         display_name="[gemini] gemini-2.0-flash",
-        model_name="gemini-2.0-flash",
+        model_name="gemini-1.5-flash",
         provider=ModelProvider.GEMINI
     ),
     LLMModel(
