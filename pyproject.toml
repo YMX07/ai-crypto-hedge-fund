@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "crypto-ai-hedge-fund"
+version = "0.1.0"
+description = "A crypto AI hedge fund that simulates trading agents and backtests strategies."
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ccxt = "^4.3.0"  # For KuCoin and Binance API
+yfinance = "^0.2.0"  # For Yahoo Finance data
+pandas = "^2.2.0"  # Data manipulation
+matplotlib = "^3.8.0"  # Plotting
+mplfinance = "^0.12.0"  # Candlestick charts
+numpy = "^1.26.0"  # Numerical operations
+python-dotenv = "^1.0.0"  # Environment variable loading
+langgraph = "^0.2.0"  # Workflow orchestration
+langchain-core = "^0.3.0"  # LangChain messages
+colorama = "^0.4.0"  # Colored terminal output
+questionary = "^2.0.0"  # Interactive prompts
+tabulate = "^0.9.0"  # Table formatting
+
+[tool.poetry.dev-dependencies]
+# Add dev dependencies if needed (e.g., for testing)
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
