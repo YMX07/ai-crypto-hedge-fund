@@ -1,1 +1,6 @@
-*.env
+# .gitignore
+.env
+.venv/
+data/
+*.png
+__pycache__/
