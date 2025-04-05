@@ -1,5 +1,3 @@
-"""Helper functions for LLM"""
-
 import json
 from typing import TypeVar, Type, Optional, Any
 from pydantic import BaseModel
@@ -19,7 +17,6 @@ def call_llm(
 ) -> T:
     """
     Makes an LLM call with retry logic, handling both Deepseek and non-Deepseek models.
-
     Args:
         prompt: The prompt to send to the LLM
         model_name: Name of the model to use
@@ -28,7 +25,6 @@ def call_llm(
         agent_name: Optional name of the agent for progress updates
         max_retries: Maximum number of retries (default: 3)
         default_factory: Optional factory function to create default response on failure
-
     Returns:
         An instance of the specified Pydantic model
     """
@@ -39,20 +35,25 @@ def call_llm(
 
     # For non-JSON support models, we can use structured output
     if not (model_info and not model_info.has_json_mode()):
-        llm = llm.with_structured_output(
-            pydantic_model,
-            method="json_mode",
-        )
+        llm = llm.with_structured_output(pydantic_model, method="json_mode")
 
     # Call the LLM with retries
+    result = None
     for attempt in range(max_retries):
         try:
             # Call the LLM
             result = llm.invoke(prompt)
 
-            # For non-JSON support models, we need to extract and parse the JSON manually
+            # For non-JSON support models, we need to extract and parse the response manually
             if model_info and not model_info.has_json_mode():
-                parsed_result = extract_json_from_deepseek_response(result.content)
+                if model_info.is_deepseek():
+                    parsed_result = extract_json_from_deepseek_response(result.content)
+                elif model_info.is_gemini():
+                    # Gemini might return JSON in ```json ... ``` format or plain text
+                    parsed_result = parse_gemini_response(result.content)
+                else:
+                    parsed_result = None
+
                 if parsed_result:
                     return pydantic_model(**parsed_result)
             else:
@@ -61,16 +62,79 @@ def call_llm(
         except Exception as e:
             if agent_name:
                 progress.update_status(agent_name, None, f"Error - retry {attempt + 1}/{max_retries}")
-
             if attempt == max_retries - 1:
                 print(f"Error in LLM call after {max_retries} attempts: {e}")
-                # Use default_factory if provided, otherwise create a basic default
                 if default_factory:
                     return default_factory()
                 return create_default_response(pydantic_model)
 
-    # This should never be reached due to the retry logic above
     return create_default_response(pydantic_model)
+
+
+def parse_gemini_response(content: str) -> Optional[dict]:
+    """
+    Parse Gemini's response to extract action, confidence, and reasoning.
+    Args:
+        content (str): The raw response from Gemini
+    Returns:
+        dict: Parsed response with action, confidence, and reasoning
+    """
+    try:
+        # Check if the response is in ```json ... ``` format
+        json_start = content.find("```json")
+        if json_start != -1:
+            json_text = content[json_start + 7:]  # Skip past ```json
+            json_end = json_text.find("```")
+            if json_end != -1:
+                json_text = json_text[:json_end].strip()
+                return json.loads(json_text)
+
+        # Fallback: Parse as plain text (e.g., "**Signal:** buy\n**Confidence:** 0.9\n**Reasoning:** ...")
+        lines = content.split("\n")
+        parsed = {}
+        current_key = None
+        reasoning_lines = []
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Check for keys like "Signal", "Trading Signal", "Confidence", "Reasoning"
+            if line.startswith("**"):
+                # Remove ** and trim
+                line = line.replace("**", "").strip()
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip().lower()
+                    value = value.strip()
+
+                    if key in ("signal", "trading signal"):
+                        parsed["action"] = value.lower()
+                        current_key = None
+                    elif key == "confidence":
+                        parsed["confidence"] = float(value)
+                        current_key = None
+                    elif key == "reasoning":
+                        current_key = "reasoning"
+                        if value:
+                            reasoning_lines.append(value)
+                    else:
+                        current_key = None
+                else:
+                    current_key = None
+            elif current_key == "reasoning":
+                reasoning_lines.append(line)
+
+        if reasoning_lines:
+            parsed["reasoning"] = " ".join(reasoning_lines)
+
+        if "action" in parsed and "confidence" in parsed and "reasoning" in parsed:
+            return parsed
+        else:
+            return None
+    except Exception as e:
+        return None
 
 
 def create_default_response(model_class: Type[T]) -> T:
@@ -86,12 +150,10 @@ def create_default_response(model_class: Type[T]) -> T:
         elif hasattr(field.annotation, "__origin__") and field.annotation.__origin__ == dict:
             default_values[field_name] = {}
         else:
-            # For other types (like Literal), try to use the first allowed value
             if hasattr(field.annotation, "__args__"):
                 default_values[field_name] = field.annotation.__args__[0]
             else:
                 default_values[field_name] = None
-
     return model_class(**default_values)
 
 

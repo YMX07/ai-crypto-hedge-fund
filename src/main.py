@@ -13,8 +13,6 @@ from agents.portfolio_manager import portfolio_management_agent as ag
 
 from tools.data_fetcher import fetch_crypto_data
 from tools.backtester import Backtester
-from graph.visualization import plot_portfolio_value, plot_drawdowns, plot_returns
-from tools.visualization import plot_ohlcv
 from agents.risk_manager import RiskManagerAgent
 from tools.utils import normalize_ohlcv_data
 from tools.display import print_trading_output
@@ -58,11 +56,6 @@ def run_hedge_fund(
     raw_data = fetch_crypto_data(tickers, start_date, end_date)
     price_data = {ticker: normalize_ohlcv_data(df) for ticker, df in raw_data.items()}
 
-    # Visualize raw data
-    for ticker, df in price_data.items():
-        print(f"Visualizing OHLCV data for {ticker}...")
-        plot_ohlcv(df, ticker)
-
     # Start progress tracking
     progress.start()
 
@@ -102,33 +95,8 @@ def run_hedge_fund(
             "analyst_signals": final_state["data"]["analyst_signals"],
         }
 
-        # Print trading decisions
+        # Print all output using the display function
         print_trading_output(result)
-
-        # Run backtest
-        print("Running backtest...")
-        backtester = Backtester(initial_cash=portfolio["cash"])
-        decisions_with_timestamp = []
-        for ticker, decision in result["decisions"].items():
-            # Use the last timestamp from the price data for simplicity
-            last_timestamp = price_data[ticker]["timestamp"].iloc[-1]
-            decision["timestamp"] = last_timestamp
-            decision["asset"] = ticker
-            decisions_with_timestamp.append(decision)
-
-        backtest_results = backtester.run(decisions_with_timestamp, price_data)
-        metrics = backtester.calculate_metrics(backtest_results)
-
-        # Print performance metrics
-        print("\nBacktest Performance Metrics:")
-        for metric, value in metrics.items():
-            print(f"{metric.replace('_', ' ').title()}: {value:.2f}")
-
-        # Visualize backtest results
-        print("Visualizing backtest results...")
-        plot_portfolio_value(backtest_results)
-        plot_drawdowns(backtest_results)
-        plot_returns(backtest_results)
 
         return result
 
@@ -141,32 +109,31 @@ def start(state: AgentState):
     return state
 
 def create_workflow(selected_analysts=None):
-    """Create the workflow with selected analysts."""
+    """Create the workflow with selected analysts, executing them sequentially."""
     workflow = StateGraph(AgentState)
     workflow.add_node("start_node", start)
 
-    # Get analyst nodes from the configuration
-    analyst_nodes = get_analyst_nodes()
+    # Get analyst nodes for selected analysts only
+    analyst_nodes = get_analyst_nodes(selected_analysts)
 
     # Default to all analysts if none selected
     if selected_analysts is None:
         selected_analysts = list(analyst_nodes.keys())
 
-    # Add selected analyst nodes
+    # Add selected analyst nodes and connect them sequentially
+    previous_node = "start_node"
     for analyst_key in selected_analysts:
         node_name, node_func = analyst_nodes[analyst_key]
         workflow.add_node(node_name, node_func)
-        workflow.add_edge("start_node", node_name)
+        workflow.add_edge(previous_node, node_name)
+        previous_node = node_name
 
-    # Always add risk and portfolio management
+    # Add risk and portfolio management nodes
     workflow.add_node("risk_management_agent", RiskManagerAgent().generate_signal)
     workflow.add_node("portfolio_management_agent", ag)
 
-    # Connect selected analysts to risk management
-    for analyst_key in selected_analysts:
-        node_name = analyst_nodes[analyst_key][0]
-        workflow.add_edge(node_name, "risk_management_agent")
-
+    # Connect the last analyst node to risk_management_agent, then to portfolio_management_agent
+    workflow.add_edge(previous_node, "risk_management_agent")
     workflow.add_edge("risk_management_agent", "portfolio_management_agent")
     workflow.add_edge("portfolio_management_agent", END)
 

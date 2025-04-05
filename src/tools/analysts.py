@@ -8,9 +8,14 @@ ANALYST_ORDER = [
     ("Charles Hoskinson", "charles_hoskinson")
 ]
 
-def get_analyst_nodes():
+def get_analyst_nodes(selected_analysts=None):
     """
     Returns a dictionary mapping analyst keys to their node names and functions.
+    Only initializes the selected analysts to avoid loading unused agents.
+    Args:
+        selected_analysts (list): List of analyst keys to initialize
+    Returns:
+        dict: Mapping of analyst keys to (node_name, node_function)
     """
     from agents.michael_saylor import MichaelSaylorAgent
     from agents.vitalik_buterin import VitalikButerinAgent
@@ -20,12 +25,25 @@ def get_analyst_nodes():
     from agents.brian_armstrong import BrianArmstrongAgent
     from agents.charles_hoskinson import CharlesHoskinsonAgent
 
-    return {
-        "michael_saylor": ("michael_saylor_agent", MichaelSaylorAgent().generate_signal),
-        "vitalik_buterin": ("vitalik_buterin_agent", VitalikButerinAgent().generate_signal),
-        "technicals": ("technicals_agent", TechnicalsAgent().generate_signal),
-        "cz_binance": ("cz_binance_agent", CZBinanceAgent().generate_signal),
-        "elon_musk": ("elon_musk_agent", ElonMuskAgent().generate_signal),
-        "brian_armstrong": ("brian_armstrong_agent", BrianArmstrongAgent().generate_signal),
-        "charles_hoskinson": ("charles_hoskinson_agent", CharlesHoskinsonAgent().generate_signal)
+    all_analysts = {
+        "michael_saylor": (MichaelSaylorAgent, "michael_saylor_agent"),
+        "vitalik_buterin": (VitalikButerinAgent, "vitalik_buterin_agent"),
+        "technicals": (TechnicalsAgent, "technicals_agent"),
+        "cz_binance": (CZBinanceAgent, "cz_binance_agent"),
+        "elon_musk": (ElonMuskAgent, "elon_musk_agent"),
+        "brian_armstrong": (BrianArmstrongAgent, "brian_armstrong_agent"),
+        "charles_hoskinson": (CharlesHoskinsonAgent, "charles_hoskinson_agent")
     }
+
+    # Only initialize selected analysts
+    if selected_analysts is None:
+        selected_analysts = list(all_analysts.keys())
+
+    analyst_nodes = {}
+    for key in selected_analysts:
+        if key in all_analysts:
+            agent_class, node_name = all_analysts[key]
+            agent_instance = agent_class()
+            analyst_nodes[key] = (node_name, agent_instance.generate_signal)
+
+    return analyst_nodes

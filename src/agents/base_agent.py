@@ -1,5 +1,11 @@
 import json
 from tools.llm_interface import call_llm
+from pydantic import BaseModel
+
+class TradingSignal(BaseModel):
+    action: str
+    confidence: float
+    reasoning: str
 
 class BaseAgent:
     def __init__(self, name, prompt_file="config/prompts.json"):
@@ -7,51 +13,40 @@ class BaseAgent:
         with open(prompt_file, 'r') as f:
             self.prompt = json.load(f).get(name, "")
 
-    def generate_signal(self, state, asset=None):
+    def generate_signal(self, data, asset="BTC", model_name="gemini-2.0-flash", model_provider="Gemini"):
         """
         Generates a trading signal using LLM based on market data.
         Args:
-            state (AgentState): The current state with market data
-            asset (str): Crypto asset ticker (optional, defaults to agent's focus)
+            data (pd.DataFrame): OHLCV data
+            asset (str): Crypto asset ticker
+            model_name (str): Name of the LLM model
+            model_provider (str): Provider of the LLM model
         Returns:
-            AgentState: Updated state with the agent's signal
+            dict: Signal with action, asset, confidence, and reasoning
         """
-        data = state["data"]
-        price_data = data.get("price_data", {})
-        tickers = data["tickers"] if asset is None else [asset]
-        signals = data.get("analyst_signals", {})
-        show_reasoning = state["metadata"].get("show_reasoning", False)
-        model_name = state["metadata"].get("model_name", "gemini-1.5-flash")
-        model_provider = state["metadata"].get("model_provider")
-        pyd = state["metadata"].get("pydantic_model")
+        if "close" not in data:
+            return {"action": "hold", "asset": asset, "confidence": 0.0, "reasoning": "Missing 'close' column in data"}
 
-        if self.name not in signals:
-            signals[self.name] = {}
+        # Prepare data summary for LLM
+        latest_close = data["close"].iloc[-1]
+        volume = data["volume"].iloc[-1]
+        sma_50 = data["close"].rolling(window=50).mean().iloc[-1]
+        data_summary = f"Asset: {asset}\nLatest Close: {latest_close}\nVolume: {volume}\n50-day SMA: {sma_50}"
 
-        for ticker in tickers:
-            if ticker not in price_data:
-                continue
+        # Construct prompt with data
+        full_prompt = f"{self.prompt}\n\nCurrent Market Data:\n{data_summary}\n\nProvide a trading signal (buy, sell, hold) with confidence (0-1) and brief reasoning."
 
-            df = price_data[ticker]
-            if df.empty:
-                continue
+        # Call LLM with the required arguments
+        response = call_llm(full_prompt, model_name, model_provider, TradingSignal, agent_name=self.name)
 
-            latest_close = df["close"].iloc[-1]
-            volume = df["volume"].iloc[-1]
-            sma_50 = df["close"].rolling(window=50).mean().iloc[-1]
-            data_summary = f"Asset: {ticker}\nLatest Close: {latest_close}\nVolume: {volume}\n50-day SMA: {sma_50}"
-
-
-            full_prompt = f"{self.prompt}\n\nCurrent Market Data:\n{data_summary}\n\nProvide a trading signal (buy, sell, hold) with confidence (0-1) and brief reasoning."
-            response = call_llm(full_prompt,model_name,model_provider,pyd)  # Pass the model argument
-
-            try:
-                signal = json.loads(response)
-                signals[self.name][ticker] = signal
-                if show_reasoning:
-                    print(f"{self.name} Signal for {ticker}: {signal}")
-            except Exception:
-                signals[self.name][ticker] = {"action": "hold", "confidence": 0.5, "reasoning": "Error parsing LLM response"}
-
-        data["analyst_signals"] = signals
-        return state
+        # Convert response to dict
+        try:
+            signal = response if isinstance(response, dict) else response.dict()
+            return {
+                "action": signal.get("action", "hold"),
+                "asset": asset,
+                "confidence": float(signal.get("confidence", 0.5)),
+                "reasoning": signal.get("reasoning", "No reasoning provided")
+            }
+        except Exception as e:
+            return {"action": "hold", "asset": asset, "confidence": 0.5, "reasoning": f"Error parsing LLM response: {e}"}
