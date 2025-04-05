@@ -74,13 +74,8 @@ AVAILABLE_MODELS = [
         provider=ModelProvider.GEMINI
     ),
     LLMModel(
-        display_name="[gemini] gemini-2.5-pro",
-        model_name="gemini-2.5-pro-exp-03-25",
-        provider=ModelProvider.GEMINI
-    ),
-    LLMModel(
-        display_name="[groq] llama-3.3 70b",
-        model_name="llama-3.3-70b-versatile",
+        display_name="[xai] grok-2-latest",
+        model_name="grok-2-latest",
         provider=ModelProvider.GROQ
     ),
     LLMModel(
@@ -91,16 +86,6 @@ AVAILABLE_MODELS = [
     LLMModel(
         display_name="[openai] gpt-4o",
         model_name="gpt-4o",
-        provider=ModelProvider.OPENAI
-    ),
-    LLMModel(
-        display_name="[openai] o1",
-        model_name="o1",
-        provider=ModelProvider.OPENAI
-    ),
-    LLMModel(
-        display_name="[openai] o3-mini",
-        model_name="o3-mini",
         provider=ModelProvider.OPENAI
     ),
 ]

@@ -1,3 +1,12 @@
+from agents.michael_saylor import MichaelSaylorAgent
+from agents.vitalik_buterin import VitalikButerinAgent
+from agents.technicals import TechnicalsAgent
+from agents.cz_binance import CZBinanceAgent
+from agents.elon_musk import ElonMuskAgent
+from agents.brian_armstrong import BrianArmstrongAgent
+from agents.charles_hoskinson import CharlesHoskinsonAgent
+
+
 ANALYST_ORDER = [
     ("Michael Saylor", "michael_saylor"),
     ("Vitalik Buterin", "vitalik_buterin"),
@@ -8,6 +17,8 @@ ANALYST_ORDER = [
     ("Charles Hoskinson", "charles_hoskinson")
 ]
 
+
+
 def get_analyst_nodes(selected_analysts=None):
     """
     Returns a dictionary mapping analyst keys to their node names and functions.
@@ -17,13 +28,7 @@ def get_analyst_nodes(selected_analysts=None):
     Returns:
         dict: Mapping of analyst keys to (node_name, node_function)
     """
-    from agents.michael_saylor import MichaelSaylorAgent
-    from agents.vitalik_buterin import VitalikButerinAgent
-    from agents.technicals import TechnicalsAgent
-    from agents.cz_binance import CZBinanceAgent
-    from agents.elon_musk import ElonMuskAgent
-    from agents.brian_armstrong import BrianArmstrongAgent
-    from agents.charles_hoskinson import CharlesHoskinsonAgent
+
 
     all_analysts = {
         "michael_saylor": (MichaelSaylorAgent, "michael_saylor_agent"),

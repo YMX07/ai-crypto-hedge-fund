@@ -3,7 +3,6 @@ from agents.base_agent import BaseAgent
 class VitalikButerinAgent(BaseAgent):
     def __init__(self):
         super().__init__(name="Vitalik Buterin")
-        self.focus_asset = "ETH"
 
     def generate_signal(self, state):
         """
@@ -21,11 +20,7 @@ class VitalikButerinAgent(BaseAgent):
         model_name = state["metadata"].get("model_name", "gemini-2.0-flash")
         model_provider = state["metadata"].get("model_provider", "Gemini")
 
-        signals_generated = False
         for ticker in tickers:
-            if ticker != self.focus_asset:  # Vitalik focuses on ETH
-                continue
-
             if ticker not in price_data or price_data[ticker].empty:
                 continue
 
@@ -36,10 +31,6 @@ class VitalikButerinAgent(BaseAgent):
             # Générer le signal en utilisant la méthode de BaseAgent
             signal = super().generate_signal(df, asset=ticker, model_name=model_name, model_provider=model_provider)
             signals.setdefault("Vitalik Buterin", {})[ticker] = signal
-            signals_generated = True
-
-        if not signals_generated:
-            pass  # Silently skip if no signals are generated
 
         data["analyst_signals"] = signals
         return state

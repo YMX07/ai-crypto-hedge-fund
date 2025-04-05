@@ -26,7 +26,6 @@ class TechnicalsAgent(BaseAgent):
         model_name = state["metadata"].get("model_name", "gemini-2.0-flash")
         model_provider = state["metadata"].get("model_provider", "Gemini")
 
-        signals_generated = False
         for ticker in tickers:
             if ticker not in price_data or price_data[ticker].empty:
                 continue
@@ -35,33 +34,10 @@ class TechnicalsAgent(BaseAgent):
             if "close" not in df.columns:
                 continue
 
-            # Calculate RSI
-            delta = df["close"].pct_change()
-            gain = delta.where(delta > 0, 0).rolling(window=14).mean()
-            loss = -delta.where(delta < 0, 0).rolling(window=14).mean()
-            rs = gain / loss
-            rsi = 100 - (100 / (1 + rs)).iloc[-1] if not rs.isna().all() else 50  # Default to 50 if NaN
-
-            # Prepare data summary for LLM
-            data_summary = f"Asset: {ticker}\nLatest Close: {df['close'].iloc[-1]}\nRSI (14-day): {rsi:.2f}"
-            full_prompt = f"{self.prompt}\n\nCurrent Market Data:\n{data_summary}\n\nProvide a trading signal (buy, sell, hold) with confidence (0-1) and brief reasoning in JSON format:\n{{\"action\": \"buy/sell/hold\", \"confidence\": 0-1, \"reasoning\": \"your reasoning\"}}"
-
-            # Call LLM
-            response = call_llm(full_prompt, model_name, model_provider, TradingSignal, agent_name=self.name)
-            try:
-                signal = response if isinstance(response, dict) else response.dict()
-                signals.setdefault("Technicals", {})[ticker] = signal
-                signals_generated = True
-            except Exception:
-                signals.setdefault("Technicals", {})[ticker] = {
-                    "action": "hold",
-                    "confidence": 0.5,
-                    "reasoning": "Error processing technical signal"
-                }
-                signals_generated = True
-
-        if not signals_generated:
-            pass  # Silently skip if no signals are generated
+            # Générer le signal en utilisant la méthode de BaseAgent
+            # La 50-day SMA est déjà calculée dans BaseAgent et incluse dans le prompt
+            signal = super().generate_signal(df, asset=ticker, model_name=model_name, model_provider=model_provider)
+            signals.setdefault("Technicals", {})[ticker] = signal
 
         data["analyst_signals"] = signals
         return state
